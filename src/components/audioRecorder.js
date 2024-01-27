@@ -1,9 +1,12 @@
 import { useState, useRef } from "react";
+import { AudioVisualizer } from 'react-audio-visualize';
 
 const mimeType = "audio/mp3";
 const apiAddress = "http://localhost:5000";
+const visualizerRef = useRef<HTMLCanvasElement>(null)
 
 const AudioRecorder = () => {
+    const [questionAudio, setQuestionAudio] = useState(null);
     const [permission, setPermission] = useState(false);
     const mediaRecorder = useRef(null);
     const [recordingStatus, setRecordingStatus] = useState("inactive");
@@ -29,10 +32,22 @@ const AudioRecorder = () => {
         }
     };
 
+    //start the interview.
+    const getQuestion = async () => {
+        await fetch(`${apiAddress}/questions`, {
+            method: 'GET',
+        }).then(
+            response => response.blob()
+        ).then(
+            blob => setQuestionAudio(blob)
+        ).catch((e) => console.log(e));
+      };
+
     const startRecording = async () => {
         setRecordingStatus("recording");
         //create new Media recorder instance using the stream
         const media = new MediaRecorder(stream, { type: mimeType });
+        await getQuestion();
         //set the MediaRecorder instance to the mediaRecorder ref
         mediaRecorder.current = media;
         //invokes the start method to start the recording process
@@ -61,18 +76,41 @@ const AudioRecorder = () => {
         };
       };
     const submitAudio = async () => {
+        setQuestionAudio(null);
         const formData = new FormData();
         var fileOfBlob = new File([audioFile], 'interviewAudio.mp3');
         formData.append('file', fileOfBlob);
         await fetch(`${apiAddress}/uploadAudio`, {
           method: "POST",
           body: formData
-        }).catch((e) => {console.log(e)})
+        }).then(
+            response => response.blob()
+        ).then(
+                blob => setQuestionAudio(blob)
+        ).catch((e) => {console.log(e)})
       };
 
     
     return (
-        <div>
+        <div>    
+            <h2>Audio Player</h2> 
+            {questionAudio ? 
+                <div>
+                    <AudioVisualizer
+                        ref={visualizerRef}
+                        blob={questionAudio}
+                        width={500}
+                        height={75}
+                        barWidth={1}
+                        gap={0}
+                        barColor={'#f76565'}
+                    />
+                <audio controls autoPlay>
+                    <source src={questionAudio} type="audio/mp3"/>
+                    Your browser does not support the video tag.
+                </audio>
+                </div> : null
+            }
             <h2>Audio Recorder</h2>
             <main>
                 <div className="audio-controls">
