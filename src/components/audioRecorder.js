@@ -62,7 +62,8 @@ const AudioRecorder = () => {
       };
     const submitAudio = async () => {
         const formData = new FormData();
-        formData.append('file', audioFile);
+        var fileOfBlob = new File([audioFile], 'interviewAudio.mp3');
+        formData.append('file', fileOfBlob);
         await fetch(`${apiAddress}/uploadFile`, {
           method: "POST",
           body: formData
