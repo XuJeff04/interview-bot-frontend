@@ -4,7 +4,6 @@ import {ScaleLoader} from "react-spinners";
 
 const mimeType = "audio/mp3";
 const apiAddress = "http://localhost:5000";
-const visualizerRef = useRef<HTMLCanvasElement>(null)
 
 const AudioRecorder = () => {
     const [questionAudio, setQuestionAudio] = useState(null);
@@ -15,7 +14,9 @@ const AudioRecorder = () => {
     const [audioChunks, setAudioChunks] = useState([]);
     const [audio, setAudio] = useState(null);
     const [audioFile, setAudioFile] = useState(null);
+    const [questionLink, setQuestionLink] = useState(null);
     const [loading, setLoading] = useState(false);
+    const visualizerRef = useRef<HTMLCanvasElement>(null);
 
     const getMicrophonePermission = async () => {
         if ("MediaRecorder" in window) {
@@ -87,8 +88,19 @@ const AudioRecorder = () => {
                 body: formData
             }).then(
                 (response) => {
-                    console.log(response['file']);
                     setLoading(false);
+                    response.json().then(async (json) => {
+                        console.log("http://localhost:5000/media2/" + json['file']);
+                        await fetch("http://localhost:5000/media2/" + json['file']).then((r) =>
+                        {
+                            r.blob().then((blob) => {
+                                console.log(blob);
+                                setQuestionAudio(blob);
+                                setQuestionLink("http://localhost:5000/media2/" + json['file']);
+                            })
+                        }
+                        );
+                    })
                 }
             ).catch((e) => {
                 console.log(e)
@@ -108,27 +120,27 @@ const AudioRecorder = () => {
             response => response.blob()
         ).then(
                 blob => setQuestionAudio(blob)
+
         ).catch((e) => {console.log(e)})
       };
 
-    
+    console.log(questionAudio);
     return (
         <div>
             {questionAudio ?
             <div>
-            <div className="text-3xl">Audio Player</div>
+            <div className="text-3xl">Interviewer Response</div>
                 <div>
                     <AudioVisualizer
-                        ref={visualizerRef}
                         blob={questionAudio}
                         width={500}
                         height={75}
                         barWidth={1}
                         gap={0}
-                        barColor={'#f76565'}
+                        barColor={'#9333ea'}
                     />
                 <audio controls autoPlay>
-                    <source src={questionAudio} type="audio/mp3"/>
+                    <source src={questionLink} type="audio/mp3"/>
                     Your browser does not support the video tag.
                 </audio>
                 </div>
