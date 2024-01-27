@@ -10,6 +10,7 @@ const AudioRecorder = () => {
     const [stream, setStream] = useState(null);
     const [audioChunks, setAudioChunks] = useState([]);
     const [audio, setAudio] = useState(null);
+    const [audioFile, setAudioFile] = useState(null);
 
     const getMicrophonePermission = async () => {
         if ("MediaRecorder" in window) {
@@ -52,6 +53,7 @@ const AudioRecorder = () => {
         mediaRecorder.current.onstop = () => {
           //creates a blob file from the audiochunks data
            const audioBlob = new Blob(audioChunks, { type: mimeType });
+           setAudioFile(audioBlob);
           //creates a playable URL from the blob file.
            const audioUrl = URL.createObjectURL(audioBlob);
            setAudio(audioUrl);
@@ -60,7 +62,7 @@ const AudioRecorder = () => {
       };
     const submitAudio = async () => {
         const formData = new FormData();
-        formData.append('file', audio);
+        formData.append('file', audioFile);
         await fetch(`${apiAddress}/uploadFile`, {
           method: "POST",
           body: formData
