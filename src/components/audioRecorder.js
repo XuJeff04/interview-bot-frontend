@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 
-const mimeType = "audio/webm";
+const mimeType = "audio/mp3";
 const apiAddress = "https://localhost:8081";
 
 const AudioRecorder = () => {
