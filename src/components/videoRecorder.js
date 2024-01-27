@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 
 const mimeType = "video/webm";
 
-const apiAddress = "https://localhost:8081";
+const apiAddress = "http://localhost:8081";
 
 
 const VideoRecorder = () => {

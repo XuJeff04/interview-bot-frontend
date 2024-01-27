@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 
 const mimeType = "audio/mp3";
-const apiAddress = "https://localhost:8081";
+const apiAddress = "http://localhost:5000";
 
 const AudioRecorder = () => {
     const [permission, setPermission] = useState(false);
@@ -64,7 +64,7 @@ const AudioRecorder = () => {
         const formData = new FormData();
         var fileOfBlob = new File([audioFile], 'interviewAudio.mp3');
         formData.append('file', fileOfBlob);
-        await fetch(`${apiAddress}/uploadFile`, {
+        await fetch(`${apiAddress}/uploadAudio`, {
           method: "POST",
           body: formData
         }).catch((e) => {console.log(e)})

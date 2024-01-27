@@ -10,7 +10,8 @@ const firebaseConfig = {
   projectId: "soliloquy-ef",
   storageBucket: "soliloquy-ef.appspot.com",
   messagingSenderId: "665440839754",
-  appId: "1:665440839754:web:1705bfb89d6195db1d9eb3"
+  appId: "1:665440839754:web:1705bfb89d6195db1d9eb3",
+  databaseURL: "https://soliloquy-ef-default-rtdb.firebaseio.com/"
 };
 
 // Initialize Firebase
