@@ -83,13 +83,14 @@ const VideoRecorder = () => {
 
 
     return (
-        <div>
-        <h2>Video Recorder</h2>
+        <div >
+        <div className="text-3xl">Permissions</div>
+            <div className="text-gray-500 text-sm py-2 pb-8">Please enable the following permissions to run this app</div>
             <main>
                 <div className="video-controls">
                 {!permission ? (
-                <button onClick={getCameraPermission} type="button">
-                    Get Video
+                <button className="bg-zinc-900 p-2 px-4 rounded-xl text-white hover:bg-zinc-700" onClick={getCameraPermission} type="button">
+                    Allow Video
                 </button>
                 ) : null}
                 {permission && recordingStatus === "inactive" ? (

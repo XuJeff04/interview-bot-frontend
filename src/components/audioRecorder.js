@@ -1,5 +1,6 @@
-import { useState, useRef } from "react";
+import {useState, useRef, useEffect} from "react";
 import { AudioVisualizer } from 'react-audio-visualize';
+import {ScaleLoader} from "react-spinners";
 
 const mimeType = "audio/mp3";
 const apiAddress = "http://localhost:5000";
@@ -14,6 +15,7 @@ const AudioRecorder = () => {
     const [audioChunks, setAudioChunks] = useState([]);
     const [audio, setAudio] = useState(null);
     const [audioFile, setAudioFile] = useState(null);
+    const [loading, setLoading] = useState(false);
 
     const getMicrophonePermission = async () => {
         if ("MediaRecorder" in window) {
@@ -47,7 +49,7 @@ const AudioRecorder = () => {
         setRecordingStatus("recording");
         //create new Media recorder instance using the stream
         const media = new MediaRecorder(stream, { type: mimeType });
-        await getQuestion();
+        //await getQuestion();
         //set the MediaRecorder instance to the mediaRecorder ref
         mediaRecorder.current = media;
         //invokes the start method to start the recording process
@@ -61,25 +63,44 @@ const AudioRecorder = () => {
         setAudioChunks(localAudioChunks);
       };
 
-    const stopRecording = () => {
+
+    const stopRecording = async () => {
         setRecordingStatus("inactive");
         //stops the recording instance
         mediaRecorder.current.stop();
-        mediaRecorder.current.onstop = () => {
-          //creates a blob file from the audiochunks data
-           const audioBlob = new Blob(audioChunks, { type: mimeType });
-           setAudioFile(audioBlob);
-          //creates a playable URL from the blob file.
-           const audioUrl = URL.createObjectURL(audioBlob);
-           setAudio(audioUrl);
-           setAudioChunks([]);
+        mediaRecorder.current.onstop = async () => {
+            //creates a blob file from the audiochunks data
+            const audioBlob = new Blob(audioChunks, {type: mimeType});
+            setAudioFile(audioBlob);
+            //creates a playable URL from the blob file.
+            const audioUrl = URL.createObjectURL(audioBlob);
+            setAudio(audioUrl);
+            setAudioChunks([]);
+            const formData = new FormData();
+            // var fileOfBlob = new File([audioFile], 'interviewAudio.mp3');
+            setLoading(true);
+            console.log(audioBlob)
+            formData.append('file', audioBlob, 'audio.mp3');
+            console.log(formData)
+            await fetch(`${apiAddress}/uploadAudio`, {
+                method: "POST",
+                body: formData
+            }).then(
+                (response) => {
+                    console.log(response['file']);
+                    setLoading(false);
+                }
+            ).catch((e) => {
+                console.log(e)
+            })
         };
       };
     const submitAudio = async () => {
-        setQuestionAudio(null);
         const formData = new FormData();
-        var fileOfBlob = new File([audioFile], 'interviewAudio.mp3');
-        formData.append('file', fileOfBlob);
+        // var fileOfBlob = new File([audioFile], 'interviewAudio.mp3');
+        console.log(audioFile)
+        formData.append('file', audioFile, 'audio.mp3');
+        console.log(formData)
         await fetch(`${apiAddress}/uploadAudio`, {
           method: "POST",
           body: formData
@@ -92,9 +113,10 @@ const AudioRecorder = () => {
 
     
     return (
-        <div>    
-            <h2>Audio Player</h2> 
-            {questionAudio ? 
+        <div>
+            {questionAudio ?
+            <div>
+            <div className="text-3xl">Audio Player</div>
                 <div>
                     <AudioVisualizer
                         ref={visualizerRef}
@@ -109,34 +131,48 @@ const AudioRecorder = () => {
                     <source src={questionAudio} type="audio/mp3"/>
                     Your browser does not support the video tag.
                 </audio>
-                </div> : null
+                </div>
+            </div>: <div></div>
             }
-            <h2>Audio Recorder</h2>
+            <div className="text-3xl">Interview Panel</div>
+
             <main>
                 <div className="audio-controls">
                 {!permission ? (
-                <button onClick={getMicrophonePermission} type="button">
-                    Get Microphone
+                    <div>
+                        <div className="text-gray-500 py-2 pb-4">Please enable the following permissions to begin the interview</div>
+                <button className="border-2 border-zinc-900 text-black px-8 py-2 rounded-xl hover:bg-zinc-900 hover:text-white transition-all" onClick={getMicrophonePermission} type="button">
+                    Allow Microphone Recording
                 </button>
-                ) : null}
+                    </div>
+                ) : <></>}
                 {permission && recordingStatus === "inactive" ? (
-                <button onClick={startRecording} type="button">
-                    Start Recording
-                </button>
-                ) : null}
+                    <div>
+                        <div className="text-gray-500 py-2 pb-4">Please click begin when you are ready to start the interview process. Start speaking and introduce yourself!</div>
+                        {loading ? <ScaleLoader className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-500" /> :
+                            <button  className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded-xl py-2 px-8 "  onClick={startRecording} type="button">
+                            Begin
+                        </button>}
+                    </div>
+                ) : <></>}
                 {recordingStatus === "recording" ? (
-                <button onClick={stopRecording} type="button">
+                    <div>
+                        <div className="text-gray-500 py-2 pb-4">Click stop when done. </div>
+                <button className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded-xl py-2 px-8 " onClick={stopRecording} type="button">
                     Stop Recording
                 </button>
-                ) : null}
+                    </div>
+                ) : <></>}
                 </div>
                 {audio ? (
-                <div className="audio-container">
+                <div className="py-8 px-8 bg-zinc-900 rounded-xl my-4 text-white">
+                    <div className="text-2xl font-bold">Developer Panel</div>
+                    <div className="pb-4">Clients will not be able to see this panel. For debugging only. The Client Audio file is below:</div>
                     <audio src={audio} controls></audio>
-                    <button onClick={submitAudio} type="button">
-                        analyze input
+                    <button className="border-2 border-white hover:bg-white hover:text-black transition-all rounded-xl py-2 px-4 my-8 mx-4 " onClick={submitAudio} type="button">
+                        Analyze Input
                     </button>
-                    <a download href={audio}>
+                    <a className="border-2 border-white hover:bg-white hover:text-black transition-all rounded-xl py-2 px-4 my-4 mx-4 " download href={audio}>
                         Download Recording
                     </a>
                 </div>
