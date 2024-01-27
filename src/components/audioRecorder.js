@@ -125,6 +125,7 @@ const AudioRecorder = () => {
       };
 
     console.log(questionAudio);
+    console.log(questionLink);
     return (
         <div>
             {questionAudio ?
@@ -139,7 +140,7 @@ const AudioRecorder = () => {
                         gap={0}
                         barColor={'#9333ea'}
                     />
-                <audio controls autoPlay>
+                <audio key={questionLink} controls autoPlay>
                     <source src={questionLink} type="audio/mp3"/>
                     Your browser does not support the video tag.
                 </audio>
