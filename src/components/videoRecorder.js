@@ -2,6 +2,9 @@ import { useState, useRef } from "react";
 
 const mimeType = "video/webm";
 
+const apiAddress = "https://localhost:8081";
+
+
 const VideoRecorder = () => {
     const [permission, setPermission] = useState(false);
     const mediaRecorder = useRef(null);
@@ -69,38 +72,50 @@ const VideoRecorder = () => {
             setVideoChunks([]);
         };
       };
+    const submitVideo = async () => {
+        const formData = new FormData();
+        formData.append('file', recordedVideo);
+        await fetch(`${apiAddress}/uploadFile`, {
+          method: "POST",
+          body: formData
+        }).catch((e) => {console.log(e)})
+      };
+
 
     return (
         <div>
-    <h2>Audio Recorder</h2>
-    <main>
-        <div className="audio-controls">
-            {!permission ? (
-            <button onClick={getMicrophonePermission} type="button">
-                Get Microphone
-            </button>
-            ) : null}
-            {permission && recordingStatus === "inactive" ? (
-            <button onClick={startRecording} type="button">
-                Start Recording
-            </button>
-            ) : null}
-            {recordingStatus === "recording" ? (
-            <button onClick={stopRecording} type="button">
-                Stop Recording
-            </button>
-            ) : null}
+        <h2>Video Recorder</h2>
+            <main>
+                <div className="video-controls">
+                {!permission ? (
+                <button onClick={getCameraPermission} type="button">
+                    Get Video
+                </button>
+                ) : null}
+                {permission && recordingStatus === "inactive" ? (
+                <button onClick={startRecording} type="button">
+                    Start Recording
+                </button>
+                ) : null}
+                {recordingStatus === "recording" ? (
+                <button onClick={stopRecording} type="button">
+                    Stop Recording
+                </button>
+                ) : null}
+                </div>
+                {recordedVideo ? (
+                <div className="audio-player">
+                    <audio src={recordedVideo} controls></audio>
+                    <button onClick={submitVideo} type="button">
+                        analyze input
+                    </button>
+                    <a download href={recordedVideo}>
+                        Download Recording
+                    </a>
+                </div>
+                ) : null}
+            </main>
         </div>
-        {audio ? (
-        <div className="audio-player">
-            <audio src={audio} controls></audio>
-            <a download href={audio}>
-                Download Recording
-            </a>
-        </div>
-        ) : null}
-    </main>
-</div>
     );
 };
 export default VideoRecorder;
