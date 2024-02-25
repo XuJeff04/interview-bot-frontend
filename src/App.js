@@ -1,7 +1,14 @@
 import "./App.css";
-import { useState, useRef } from "react";
+import {useState, useRef, useEffect} from "react";
 import VideoRecorder from "./components/videoRecorder";
 import AudioRecorder from "./components/audioRecorder";
+import * as PIXI from 'pixi.js';
+import { Live2DModel } from 'pixi-live2d-display/cubism4';
+import {Ticker} from "pixi.js";
+
+
+const cubism4Model =
+    "https://cdn.jsdelivr.net/gh/guansss/pixi-live2d-display/test/assets/haru/haru_greeter_t03.model3.json";
 
 const App = () => {
     let [recordOption, setRecordOption] = useState("video");
@@ -10,6 +17,32 @@ const App = () => {
             setRecordOption(type);
         };
     };
+    useEffect(() => {
+        const app = new PIXI.Application({
+            view: document.getElementById("canvas"),
+            autoStart: true,
+            resizeTo: window,
+            transparent: true,
+            backgroundAlpha: 0
+        });
+
+        const model4 = Live2DModel.fromSync("https://cdn.jsdelivr.net/gh/guansss/pixi-live2d-display/test/assets/haru/haru_greeter_t03.model3.json");
+
+        // register Ticker for Live2DModel
+        Live2DModel.registerTicker(Ticker);
+
+        model4.once('load', () => {
+            app.stage.addChild(model4);
+            model4.scale.set(0.25);
+            model4.x = 300;
+        });
+        model4.on('hit', (hitAreas) => {
+            if (hitAreas.includes('body')) {
+                model4.motion('tap_body');
+            }
+        });
+
+    })
     return (
         <div className="flex flex-col">
             <div className="flex flex-row justify-between px-16 bg-zinc-800 drop-shadow-2xl items-center">
@@ -34,8 +67,11 @@ const App = () => {
 
                     </div>
                 </div>
-                <div className="px-8 py-8 border-r h-screen">
+                <div className="h-screen">
+                    <div className="px-8 py-8">
                     {recordOption === "video" ? <VideoRecorder /> : <AudioRecorder />}
+                    </div>
+                    <canvas id="canvas"></canvas>
                 </div>
             </div>
         </div>
